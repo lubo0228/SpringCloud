@@ -1,0 +1,128 @@
+server:
+  port: 8081
+spring:
+  profiles:
+    active: limit_route
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: http://httpbin.org:80/get
+        filters:
+        - RequestTime=false
+        predicates:
+        - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+  profiles: after_route
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: host_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - Host=**.fangzhipeng.com
+  profiles: host_route
+#curl -H 'Host:www.fangzhipeng.com' localhost:8081
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: header_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - Header=X-Request-Id, \d+
+  profiles: header_route
+#curl -H 'X-Request-Id:1' localhost:8081
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cookie_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - Cookie=name, forezp
+  profiles: cookie_route
+#curl -H 'Cookie:name=forezp' localhost:8081
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: method_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - Method=GET
+  profiles: method_route
+#curl localhost:8081
+#curl -XPOST localhost:8081
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: path_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - Path=/foo/{segment}
+  profiles: path_route
+#curl localhost:8081/foo/dew
+
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: query_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - Query=foo, ba.
+  profiles: query_route
+#curl localhost:8081?foo=bar
+
+---
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      routes:
+      - id: service-hi
+        uri: lb://SERVICE-HI
+        predicates:
+          - Path=/demo/**
+        filters:
+          - StripPrefix=1
+      - id: limit_route
+        uri: http://httpbin.org:80/get
+        predicates:
+        - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+        filters:
+        - name: RequestRateLimiter
+          args:
+            key-resolver: '#{@hostAddrKeyResolver}'
+            redis-rate-limiter.replenishRate: 1
+            redis-rate-limiter.burstCapacity: 3
+  profiles: limit_route
+  application:
+    name: gateway-limiter
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

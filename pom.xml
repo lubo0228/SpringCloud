@@ -16,6 +16,7 @@
         <module>config-server</module>
         <module>config-client</module>
         <module>service-turbine</module>
+        <module>service-gateway</module>
     </modules>
     <packaging>pom</packaging>
 
