@@ -10,4 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface SchedualServiceHi {
     @RequestMapping(value = "/hi", method = RequestMethod.GET)
     String sayHiFromClientOne(@RequestParam(value = "name") String name);
+
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    String execute();
+
+    @RequestMapping(value = "/save2", method = RequestMethod.POST)
+    String execute2();
 }
